@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "philo.h": "c",
+        "__config": "c",
+        "mutex": "c",
+        "version": "c"
+    }
+}
