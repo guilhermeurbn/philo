@@ -6,16 +6,72 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 12:12:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/05 16:19:28 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/05 17:36:41 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-#include <sys/time.h>
-#include <unistd.h>
 
+pthread_mutex_t forks[2];
 
-long get_time_in_ms(void)
+void *philosofers(void *arg)
+{
+    int id = *(int *)arg;
+    int left = id;
+    int right = (id + 1) % 2;
+    int meals = 0;
+
+    while(meals < 2)
+    {
+        printf("filosofo %d esta pensando\n", id);
+        usleep(200000);
+        pthread_mutex_lock(&forks[left]);
+        pthread_mutex_lock(&forks[right]);
+        printf("filosofo %d pegou os garfos e esta comendo 🍝\n", id);
+        usleep(300000);
+        pthread_mutex_unlock(&forks[left]);
+        pthread_mutex_unlock(&forks[right]);
+        printf("filoso %d terminou de comer\n", id);
+        meals++;
+    }
+    return (NULL);
+}
+int main(void)
+{
+    pthread_t th[2];
+    int     ids[2];
+    int     i;
+
+    i = 0;
+    while(i < 2)
+    {
+        pthread_mutex_init(&forks[i], NULL);
+        i++;
+    }
+    i = 0;
+    while(i < 2)
+    {
+        ids[i] = i;
+        pthread_create(&th[i], NULL, philosofers, &ids[i]);
+        i++;
+    }
+    i = 0;
+    while(i < 2)
+    {
+        pthread_join(th[i], NULL);
+        i++;
+    }
+    i = 0;
+    while(i < 2)
+    {
+        pthread_mutex_destroy(&forks[i]);
+        i++;
+    }
+    printf("todos os filosofos terminaram.\n");
+    return (0);
+}
+
+/* long get_time_in_ms(void)
 {
     struct timeval tv;
     long    ms;
@@ -73,7 +129,7 @@ void *thread_function(void *arg)
         pthread_mutex_unlock(&mutex);   
     }
     pthread_exit(NULL);
-}
+} */
 
 
  
