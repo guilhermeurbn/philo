@@ -6,19 +6,34 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 12:12:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/05 17:36:41 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/05 18:06:02 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-pthread_mutex_t forks[2];
+typedef struct s_data {
+    int id;
+    int n;
+    pthread_mutex_t *forks;
+} t_data;
+long get_time_in_ms(void)
+{
+    struct timeval tv;
+    long    ms;
 
+    gettimeofday(&tv, NULL);
+    ms = (tv.tv_sec * 1000) + (tv.tv_usec / 1000) / 1000;
+    return (ms);
+}
 void *philosofers(void *arg)
 {
-    int id = *(int *)arg;
+    t_data *data = (t_data *)arg;
+    int id = data->id;
+    int n = data->n;
+    pthread_mutex_t *forks = data->forks;
     int left = id;
-    int right = (id + 1) % 2;
+    int right = (id + 1) % n;
     int meals = 0;
 
     while(meals < 2)
@@ -36,33 +51,39 @@ void *philosofers(void *arg)
     }
     return (NULL);
 }
-int main(void)
+int main(int argc, char **argv)
 {
-    pthread_t th[2];
-    int     ids[2];
+    if (argc < 2)
+        return (0);
+    int n = atoi(argv[1]);
+    pthread_mutex_t forks[n];
+    pthread_t       threads[n];
+    t_data  data[n];
     int     i;
 
     i = 0;
-    while(i < 2)
+    while(i < n)
     {
         pthread_mutex_init(&forks[i], NULL);
         i++;
     }
     i = 0;
-    while(i < 2)
+    while(i < n)
     {
-        ids[i] = i;
-        pthread_create(&th[i], NULL, philosofers, &ids[i]);
+        data[i].id = i;
+        data[i].n = n;
+        data[i].forks = forks;
+        pthread_create(&threads[i], NULL, philosofers, &data[i]);
         i++;
     }
     i = 0;
-    while(i < 2)
+    while(i < n)
     {
-        pthread_join(th[i], NULL);
+        pthread_join(threads[i], NULL);
         i++;
     }
     i = 0;
-    while(i < 2)
+    while(i < n)
     {
         pthread_mutex_destroy(&forks[i]);
         i++;
@@ -71,16 +92,7 @@ int main(void)
     return (0);
 }
 
-/* long get_time_in_ms(void)
-{
-    struct timeval tv;
-    long    ms;
-
-    gettimeofday(&tv, NULL);
-    ms = (tv.tv_sec * 1000) + (tv.tv_usec / 1000) / 1000;
-    return (ms);
-}
-
+/*
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -130,6 +142,3 @@ void *thread_function(void *arg)
     }
     pthread_exit(NULL);
 } */
-
-
- 
