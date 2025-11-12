@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/10/16 12:12:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/07 19:47:25 by guisanto         ###   ########.fr       */
+/*   Created: 2025/11/12 12:32:36 by guisanto          #+#    #+#             */
+/*   Updated: 2025/11/12 13:55:57 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,30 +15,6 @@
 
 //a funcao pthread_join ela faz com oq uma thread(fio) 
 //espere pelo o outro termine como se fosse um wait()
-
-typedef struct s_rules {
-    int n_philo;
-    int someone_died;
-    long time_to_die;
-    long time_to_eat;
-    long time_to_sleep;
-    long start_time;
-    pthread_mutex_t death_mutex;
-    pthread_mutex_t print_mutex;
-    
-} t_rules;
-
-typedef struct s_philo {
-    int id;
-    long last_meal;
-    int meals_eaten;
-    pthread_t thread;
-    pthread_mutex_t *left_fork;
-    pthread_mutex_t *right_fork;
-    t_rules *rules;
-} t_philo;
-
-
 
 long get_time_in_ms(void)
 {
@@ -50,72 +26,53 @@ long get_time_in_ms(void)
     return (ms);
 }
 
-void *check_death(void *arg)
+void print_action(t_rules *rules, int id, char *action)
 {
-    t_data *data = (t_data *)arg;
+    pthread_mutex_lock(&rules->print_mutex);
+    printf("%ld %d %s\n", (get_time_in_ms() - rules->start_time), id, action);
+    pthread_mutex_unlock(&rules->print_mutex);
+}
+
+void *monitor_thread(void *arg)
+{
+    t_philo *philos = (t_philo *)arg;
+    t_rules *rules = philos[0].rules;
+
+    int i;
     long now;
-    while (!data->finished)
+    
+    while(1)
     {
-        pthread_mutex_lock(&death_mutex);
-        if (someone_died)
+        i = 0;
+        while(i < rules->n_philo)
         {
-            pthread_mutex_unlock(&death_mutex);
-            break;
-        }
-        pthread_mutex_unlock(&death_mutex);
-        now = get_time_in_ms();
-        if ((now - data->last_meal) > TIME_TO_DIE)
-        {
-            pthread_mutex_lock(&death_mutex);
-            if (!someone_died)
+            pthread_mutex_lock(&rules->death_mutex);
+            if (rules->someone_died)
             {
-                someone_died = 1;
-                printf("Filoso %d morreu\n", data->id);
-                printf("se passaram %ld ms desda sua last_meal\n", now - data->last_meal);
+                pthread_mutex_unlock(&rules->death_mutex);
+                return (NULL);
             }
-            pthread_mutex_unlock(&death_mutex);
-            break;
+            pthread_mutex_unlock(&rules->death_mutex);
+
+            now = get_time_in_ms();
+            pthread_mutex_lock(&philos[i].meal_mutex);
+            if((now - philos[i].last_meal) > rules->time_to_die)
+            {
+                pthread_mutex_unlock(&philos[i].meal_mutex);
+                pthread_mutex_lock(&rules->death_mutex);
+                rules->someone_died = 1;
+                pthread_mutex_unlock(&rules->death_mutex);
+                
+                print_action(rules, philos[i].id, "died");
+                return (NULL);
+            }
+            pthread_mutex_unlock(&philos[i].meal_mutex);
+            i++;
         }
         usleep(1000);
     }
-    return (NULL);
 }
 
-void *philosofers(void *arg)
-{
-    t_data *data = (t_data *)arg;
-    pthread_mutex_t *forks = data->forks;
-    int id = data->id;
-    int n = data->n;
-    int left = id;
-    int right = (id + 1) % n;
-    int meals = 0;
-
-    while(meals < 2)
-    {
-        pthread_mutex_lock(&death_mutex);
-        if (someone_died)
-        {
-            pthread_mutex_unlock(&death_mutex);
-            return (NULL);
-        }
-        pthread_mutex_unlock(&death_mutex);
-
-        printf("filosofo %d esta pensando\n", id);
-        usleep(200000);
-        pthread_mutex_lock(&forks[left]);
-        pthread_mutex_lock(&forks[right]);
-        data->last_meal = get_time_in_ms();
-        printf("filosofo %d pegou os garfos e esta comendo 🍝\n", id);
-        usleep(300000);
-        pthread_mutex_unlock(&forks[left]);
-        pthread_mutex_unlock(&forks[right]);
-        printf("filosofo %d terminou de comer\n", id);
-        meals++;
-    }
-    data->finished = 1;
-    return (NULL);
-}
 int init_rules(t_rules *rules, int argc, char **argv)
 {
     if (argc != 5)
@@ -135,6 +92,12 @@ int init_rules(t_rules *rules, int argc, char **argv)
 }
 int init_philos(t_philo *philos, pthread_mutex_t *forks, t_rules *rules)
 {
+    if (rules->n_philo <= 0 || rules->n_philo > 200 || rules->time_to_die <= 0 || rules->time_to_eat <= 0 
+        || rules->time_to_sleep <= 0)
+    {
+        printf("Error: parametros fora dos limites\n");
+        exit(0);
+    }
     int i;
     int n;
     
@@ -144,6 +107,7 @@ int init_philos(t_philo *philos, pthread_mutex_t *forks, t_rules *rules)
     while(i < n)
     {
         pthread_mutex_init(&forks[i], NULL);
+        pthread_mutex_init(&philos[i].meal_mutex, NULL);
         philos[i].id = i + 1;
         philos[i].rules = rules;
         philos[i].last_meal = rules->start_time;
@@ -172,29 +136,36 @@ void *philos_routine(void *arg)
         pthread_mutex_lock(p->left_fork);
         pthread_mutex_lock(p->right_fork);
         
+        pthread_mutex_lock(&p->meal_mutex);
         p->last_meal = get_time_in_ms();
-        pthread_mutex_lock(&rules->print_mutex);
-        printf("%ld ms: Filosofo %d esta comendo", (get_time_in_ms() - rules->start_time), p->id);
-        pthread_mutex_unlock(&rules->print_mutex);
+        pthread_mutex_unlock(&p->meal_mutex);
+        print_action(rules, p->id, "is eating");
         usleep(rules->time_to_eat * 1000);
 
+        pthread_mutex_unlock(p->left_fork);
+        pthread_mutex_unlock(p->right_fork);
+
+        print_action(rules, p->id, "is sleeping");
+        usleep(rules->time_to_sleep * 1000);
         
-        
+        print_action(rules, p->id, "is thinking");            
     }
+    return (NULL);
 }
 int main(int argc, char **argv)
 {
-    t_rules *rules;
-    t_philo philos[200]; //limite so um exemplo
+    t_rules rules;
+    t_philo philos[200];
+    pthread_t monitor;
     pthread_mutex_t forks[200];
-    
+    int i;
+    int n;
+
     if (init_rules(&rules, argc, argv))
         return (1);
     init_philos(philos, forks, &rules);
-    int i;
-    int n = rules->n_philo;
+    n = rules.n_philo;
 
-    /* criar threads */
     i = 0;
     while (i < n)
     {
@@ -202,61 +173,15 @@ int main(int argc, char **argv)
         usleep(1000);
         i++;
     }
+
+    pthread_create(&monitor, NULL, monitor_thread, philos);
+
     i = 0;
-    while(i < n)
+    while (i < n)
     {
         pthread_join(philos[i].thread, NULL);
         i++;
     }
+    pthread_join(monitor, NULL);
+    return (0);
 }
-
-/*
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-
-void    *thread_function(void *arg);
-int main(int ac, char **av)
-{
-    if (ac != 2)
-        return 0;
-
-    int n = atoi(av[1]);
-    pthread_t thread[2];
-    int ids[n];
-
-    int i = 0;
-    long start, end;
-
-    start = get_time_in_ms();
-    while (i < n)
-    {
-        ids[i] = i + 1;
-        usleep(5000);
-        pthread_create(&thread[i], NULL, thread_function, NULL);
-        i++;
-    }
-
-    i = 0;
-    while (i < n)
-    {
-        pthread_join(thread[i], NULL);
-        i++;
-    }
-    end = get_time_in_ms() - start;
-    printf("Todas %d threads finalizadas em %ld ms\n", n, end);
-    return 0;
-}
-void *thread_function(void *arg)
-{
-    (void)arg;
-    int count = 0;
-
-    while (count < 10)
-    {
-        pthread_mutex_lock(&mutex);
-        printf("Thread %ld count = %d\n", (unsigned long)pthread_self(), count);
-        count++;
-        pthread_mutex_unlock(&mutex);   
-    }
-    pthread_exit(NULL);
-} */
