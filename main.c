@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:32:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/12 13:55:57 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/15 17:18:19 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,17 @@ long get_time_in_ms(void)
     ms = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
     return (ms);
 }
+void smart_sleep(long ms, t_rules *rules)
+{
+    long start = get_time_in_ms();
+
+    while(!rules->someone_died)
+    {
+        if (get_time_in_ms() - start >= ms)
+            break;
+        usleep(500);
+    }
+}
 
 void print_action(t_rules *rules, int id, char *action)
 {
@@ -33,6 +44,25 @@ void print_action(t_rules *rules, int id, char *action)
     pthread_mutex_unlock(&rules->print_mutex);
 }
 
+void take_forks(t_philo *p)
+{
+    if (p->id % 2 == 0)
+    {
+        pthread_mutex_lock(p->right_fork);
+        pthread_mutex_lock(p->left_fork);
+    }
+    else
+    {
+        pthread_mutex_lock(p->left_fork);
+        pthread_mutex_lock(p->right_fork);
+    }
+}
+void drop_forks(t_philo *p)
+{
+    pthread_mutex_unlock(p->left_fork);
+    pthread_mutex_unlock(p->right_fork);
+    
+}
 void *monitor_thread(void *arg)
 {
     t_philo *philos = (t_philo *)arg;
@@ -63,7 +93,7 @@ void *monitor_thread(void *arg)
                 rules->someone_died = 1;
                 pthread_mutex_unlock(&rules->death_mutex);
                 
-                print_action(rules, philos[i].id, "died");
+                print_action(rules, philos[i].id, "Died");
                 return (NULL);
             }
             pthread_mutex_unlock(&philos[i].meal_mutex);
@@ -126,29 +156,23 @@ void *philos_routine(void *arg)
     p = (t_philo *)arg;
     rules = p->rules;
 
-    while(1)
+    while(!rules->someone_died)
     {
-        pthread_mutex_lock(&rules->death_mutex);
-        if (rules->someone_died)
-            return (pthread_mutex_unlock(&rules->death_mutex), NULL);
-        pthread_mutex_unlock(&rules->death_mutex);
-        
-        pthread_mutex_lock(p->left_fork);
-        pthread_mutex_lock(p->right_fork);
+        take_forks(p);
         
         pthread_mutex_lock(&p->meal_mutex);
         p->last_meal = get_time_in_ms();
         pthread_mutex_unlock(&p->meal_mutex);
-        print_action(rules, p->id, "is eating");
-        usleep(rules->time_to_eat * 1000);
-
-        pthread_mutex_unlock(p->left_fork);
-        pthread_mutex_unlock(p->right_fork);
-
-        print_action(rules, p->id, "is sleeping");
-        usleep(rules->time_to_sleep * 1000);
         
-        print_action(rules, p->id, "is thinking");            
+        print_action(rules, p->id, "Eating");
+        smart_sleep(rules->time_to_eat, rules);
+        
+        drop_forks(p);
+        
+        print_action(rules, p->id, "Sleeping");
+        smart_sleep(rules->time_to_sleep, rules);
+                
+        print_action(rules, p->id, "Thinking");            
     }
     return (NULL);
 }
