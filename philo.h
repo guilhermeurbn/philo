@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 12:09:56 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/12 12:39:30 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/20 16:40:41 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,9 @@
 
 typedef struct s_rules {
     int n_philo;
+    int must_eat;
     int someone_died;
-    long time_to_die;
+    long time_to_died;
     long time_to_eat;
     long time_to_sleep;
     long start_time;
