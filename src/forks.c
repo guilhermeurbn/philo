@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/27 16:07:21 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 18:03:45 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 19:39:15 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,36 +14,69 @@
 
 void take_forks(t_philo *p)
 {
+    if (p->rules->n_philo == 1)
+    {
+        pthread_mutex_lock(p->left_fork);
+        if (!is_dead(p->rules))
+            print_action(p->rules, p->id, "has taken a fork");
+        return;
+    }
+    left_fork(p);
+    right_fork(p);
+}
+void right_fork(t_philo *p)
+{
     if (p->id % 2 == 0)
     {
         pthread_mutex_lock(p->right_fork);
         if (!is_dead(p->rules))
             print_action(p->rules, p->id, "has taken a fork");
-        else
+        if (is_dead(p->rules))
+        {
             pthread_mutex_unlock(p->right_fork);
+            return;
+        }
         pthread_mutex_lock(p->left_fork);
         if (!is_dead(p->rules))
             print_action(p->rules, p->id, "has taken a fork");
-        else
+        if (is_dead(p->rules))
+        {
             pthread_mutex_unlock(p->left_fork);
+            pthread_mutex_unlock(p->right_fork);
+        }
     }
-    else
+}
+
+void left_fork(t_philo *p)
+{
+    if (p->id % 2 != 0)
     {
         pthread_mutex_lock(p->left_fork);
         if (!is_dead(p->rules))
             print_action(p->rules, p->id, "has taken a fork");
-        else
+        if (is_dead(p->rules))
+        {
             pthread_mutex_unlock(p->left_fork);
+            return;
+        }
         pthread_mutex_lock(p->right_fork);
         if (!is_dead(p->rules))
             print_action(p->rules, p->id, "has taken a fork");
-        else
+        if (is_dead(p->rules))
+        {
             pthread_mutex_unlock(p->right_fork);
+            pthread_mutex_unlock(p->left_fork);
+        }
     }
 }
 
 void drop_forks(t_philo *p)
 {
+    if (p->rules->n_philo == 1)
+    {
+        pthread_mutex_unlock(p->left_fork);
+        return;
+    }
     pthread_mutex_unlock(p->left_fork);
     pthread_mutex_unlock(p->right_fork);
 }

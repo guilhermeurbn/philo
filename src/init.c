@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/22 18:49:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 18:38:15 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 19:41:49 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ int init_rules(t_rules *rules, int argc, char **argv)
 {
     if (validate_arguments(argc, argv))
         return (1);
-    
+
     rules->n_philo = ft_atoi(argv[1]);
     rules->time_to_died = ft_atol(argv[2]);
     rules->time_to_eat = ft_atol(argv[3]);
@@ -63,6 +63,26 @@ int init_philos(t_philo *philos, pthread_mutex_t *forks, t_rules *rules)
     }
     return (0);
 }
+int start_philos_threads(t_philo *philos, t_rules *rules, pthread_mutex_t *forks)
+{
+    int i;
+    int n;
+
+    n = rules->n_philo;
+    i = 0;
+    while (i < n)
+    {
+        if (pthread_create(&philos[i].thread, NULL, philos_routine, &philos[i]))
+        {
+            ft_putstr_fd("Error: Failed to create thread\n", 2);
+            destroy_mutex(philos, forks, rules, n);
+            return (1);
+        }
+        i++;
+    }
+    return (0);
+}
+
 int validate_arguments(int argc, char **argv)
 {
     int i;

@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 12:09:56 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 18:10:37 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 19:26:16 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ typedef struct s_philo
     t_rules *rules;
 }   t_philo;
 
-void    destroy_mutex(t_philo *philos, pthread_mutex_t *forks, t_rules *rules, int n);
 void    take_forks(t_philo *p);
 void    drop_forks(t_philo *p);
 void    print_death(t_rules *rules, int id);
@@ -56,7 +55,14 @@ void    print_action(t_rules *rules, int id, char *action);
 void    *philos_routine(void *arg);
 void    *single_philo_routine(void *arg);
 void    smart_sleep(long ms, t_rules *rules);
+void    right_fork(t_philo *p);
+void    left_fork(t_philo *p);
+void    philo_EFS(t_philo *p, t_rules *rules);
 long    get_time_in_ms(void);
+int     start_philos_threads(t_philo *philos, t_rules *rules, pthread_mutex_t *forks);
+int     check_death(t_philo *philo, t_rules *rules, long now);
+int     check_all_ate(t_philo *philos, t_rules *rules);
+void     destroy_mutex(t_philo *philos, pthread_mutex_t *forks, t_rules *rules, int n);
 int     is_dead(t_rules *rules);
 int     validate_arguments(int argc, char **argv);
 int     init_rules(t_rules *rules, int argc, char **argv);

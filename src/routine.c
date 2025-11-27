@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/27 16:24:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 18:15:38 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 19:39:03 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,17 @@ void *philos_routine(void *arg)
     rules = p->rules;
 
     if (rules->n_philo == 1)
-        single_philo_routine(arg);
+        return single_philo_routine(arg);
         
     if (p->id % 2 == 0)
         usleep(1000);
-
+    
+    philo_EFS(p, rules); //Eating Thinking Sleeping routine
+    
+    return (NULL);
+}
+void philo_EFS(t_philo *p, t_rules *rules)
+{
     while (!is_dead(rules))
     {
         take_forks(p);
@@ -61,5 +67,4 @@ void *philos_routine(void *arg)
         if (rules->n_philo % 2 == 1)
             usleep(500);
     }
-    return (NULL);
 }
