@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/16 12:09:56 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/20 16:40:41 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 16:33:45 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,20 @@ typedef struct s_philo {
     t_rules *rules;
 } t_philo;
 
-
-
+void destroy_mutex(t_philo *philos, pthread_mutex_t *forks, t_rules *rules, int n);
+void take_forks(t_philo *p);
+void drop_forks(t_philo *p);
+void print_death(t_rules *rules, int id);
+int init_rules(t_rules *rules, int argc, char **argv);
+int init_philos(t_philo *philos, pthread_mutex_t *forks, t_rules *rules);
+void *monitor_thread(void *arg);
+int is_dead(t_rules *rules);
+void set_dead(t_rules *rules);
+void print_action(t_rules *rules, int id, char *action);
+int validate_arguments(int argc, char **argv);
+void *single_philo_routine(void *arg);
+void *philos_routine(void *arg);
+long get_time_in_ms(void);
+void smart_sleep(long ms, t_rules *rules);
 
 #endif
