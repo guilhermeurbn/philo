@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/22 18:49:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 16:23:52 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 18:38:15 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,12 @@ int init_rules(t_rules *rules, int argc, char **argv)
     if (validate_arguments(argc, argv))
         return (1);
     
-    rules->n_philo = atoi(argv[1]);
-    rules->time_to_died = atol(argv[2]);
-    rules->time_to_eat = atol(argv[3]);
-    rules->time_to_sleep = atol(argv[4]);
+    rules->n_philo = ft_atoi(argv[1]);
+    rules->time_to_died = ft_atol(argv[2]);
+    rules->time_to_eat = ft_atol(argv[3]);
+    rules->time_to_sleep = ft_atol(argv[4]);
     if (argc == 6)
-        rules->must_eat = atoi(argv[5]);
+        rules->must_eat = ft_atoi(argv[5]);
     else
         rules->must_eat = -1;
     rules->someone_died = 0;
@@ -31,7 +31,7 @@ int init_rules(t_rules *rules, int argc, char **argv)
     if (pthread_mutex_init(&rules->death_mutex, NULL) ||
         pthread_mutex_init(&rules->print_mutex, NULL))
     {
-        printf("Error: Failed to initialize mutexes\n");
+        ft_putstr_fd("Error: Failed to initialize mutexes\n", 2);
         return (1);
     }
     return (0);
@@ -50,7 +50,7 @@ int init_philos(t_philo *philos, pthread_mutex_t *forks, t_rules *rules)
         if (pthread_mutex_init(&forks[i], NULL) ||
             pthread_mutex_init(&philos[i].meal_mutex, NULL))
         {
-            printf("Error: Failed to initialize mutexes\n");
+            ft_putstr_fd("Error: Failed to initialize mutexes\n", 2);
             return (1);
         }
         philos[i].id = i + 1;
@@ -59,6 +59,29 @@ int init_philos(t_philo *philos, pthread_mutex_t *forks, t_rules *rules)
         philos[i].meals_eaten = 0;
         philos[i].left_fork = &forks[i];
         philos[i].right_fork = &forks[(i + 1) % n];
+        i++;
+    }
+    return (0);
+}
+int validate_arguments(int argc, char **argv)
+{
+    int i;
+    long val;
+
+    if (argc != 5 && argc != 6)
+    {
+        ft_putstr_fd("Ex: ./philo n_philo time_to_died time_to_eat time_to_sleep [must_eat]\n", 2);
+        return (1);
+    }
+    i = 1;
+    while (i < argc)
+    {
+        val = ft_atol(argv[i]);
+        if (val <= 0 || (i == 1 && val > 200))
+        {
+            ft_putstr_fd("Error: Invalid arguments\n", 2);
+            return (1);
+        }
         i++;
     }
     return (0);

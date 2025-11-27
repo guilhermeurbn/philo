@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/27 16:07:21 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 16:07:29 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 18:03:45 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,9 @@ void drop_forks(t_philo *p)
 void print_death(t_rules *rules, int id)
 {
     pthread_mutex_lock(&rules->print_mutex);
-    printf("%ld %d died\n", (get_time_in_ms() - rules->start_time), id);
+    ft_putnbr_fd(get_time_in_ms() - rules->start_time, 1);
+    ft_putchar_fd(' ', 1);
+    ft_putnbr_fd(id, 1);
+    ft_putstr_fd(" died\n", 1);
     pthread_mutex_unlock(&rules->print_mutex);
 }

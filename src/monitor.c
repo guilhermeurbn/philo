@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/22 18:49:42 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 16:28:47 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/27 18:15:08 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,14 @@ void print_action(t_rules *rules, int id, char *action)
 {
     pthread_mutex_lock(&rules->print_mutex);
     if (!is_dead(rules))
-        printf("%ld %d %s\n", (get_time_in_ms() - rules->start_time), id, action);
+    {
+        ft_putnbr_fd(get_time_in_ms() - rules->start_time, 1);
+        ft_putchar_fd(' ', 1);
+        ft_putnbr_fd(id, 1);
+        ft_putstr_fd(" ", 1);
+        ft_putstr_fd(action, 1);
+        ft_putchar_fd('\n', 1);
+    }
     pthread_mutex_unlock(&rules->print_mutex);
 }
 

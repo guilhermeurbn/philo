@@ -4,6 +4,7 @@
             "name": "Mac",
             "includePath": [
                 "/Users/guilhermeurbano/Common_core/philo/**",
+                "/Users/guilhermeurbano/Common_core/library/**",
                 "/usr/local/include",
                 "${default}"
             ],

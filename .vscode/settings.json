@@ -3,6 +3,16 @@
         "philo.h": "c",
         "__config": "c",
         "mutex": "c",
-        "version": "c"
-    }
+        "version": "c",
+        "libft.h": "c",
+        "ft_printf.h": "c",
+        "unistd.h": "c"
+    },
+    "python-envs.pythonProjects": [
+        {
+            "path": "library",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
 }
