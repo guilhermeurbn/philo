@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 12:32:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 19:47:29 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/28 16:08:25 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,25 +41,3 @@ int main(int argc, char **argv)
     return (0);
 }
 
-void right_fork(t_philo *p)
-{
-    if (p->id % 2 == 0)
-    {
-        pthread_mutex_lock(p->right_fork);
-        if (is_dead(p->rules))
-        {
-            pthread_mutex_unlock(p->right_fork);
-            return;
-        }
-        print_action(p->rules, p->id, "has taken a fork");
-        
-        pthread_mutex_lock(p->left_fork);
-        if (is_dead(p->rules))
-        {
-            pthread_mutex_unlock(p->left_fork);
-            pthread_mutex_unlock(p->right_fork);
-            return;
-        }
-        print_action(p->rules, p->id, "has taken a fork");
-    }
-}
