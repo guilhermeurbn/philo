@@ -6,7 +6,7 @@
 /*   By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/27 16:24:36 by guisanto          #+#    #+#             */
-/*   Updated: 2025/11/27 19:39:03 by guisanto         ###   ########.fr       */
+/*   Updated: 2025/11/29 16:17:05 by guisanto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,35 @@ void *single_philo_routine(void *arg)
     print_action(rules, p->id, "has taken a fork");
     smart_sleep(rules->time_to_died, rules);
     return NULL;
+}
+
+void philo_EFS(t_philo *p, t_rules *rules)
+{
+    while (!is_dead(rules))
+    {
+        take_forks(p);
+        if (is_dead(rules))
+        {
+            drop_forks(p);
+            break;
+        }
+        pthread_mutex_lock(&p->meal_mutex);
+        p->last_meal = get_time_in_ms();
+        p->meals_eaten++;
+        pthread_mutex_unlock(&p->meal_mutex);
+        print_action(rules, p->id, "is eating");
+        smart_sleep(rules->time_to_eat, rules);
+        drop_forks(p);
+        if (is_dead(rules))
+        break;
+        print_action(rules, p->id, "is sleeping");
+        smart_sleep(rules->time_to_sleep, rules);
+        if (is_dead(rules))
+        break;
+        print_action(rules, p->id, "is thinking");
+        if (rules->n_philo % 2 == 1)
+        usleep(500);
+    }
 }
 
 void *philos_routine(void *arg)
@@ -39,32 +68,4 @@ void *philos_routine(void *arg)
     philo_EFS(p, rules); //Eating Thinking Sleeping routine
     
     return (NULL);
-}
-void philo_EFS(t_philo *p, t_rules *rules)
-{
-    while (!is_dead(rules))
-    {
-        take_forks(p);
-        if (is_dead(rules))
-        {
-            drop_forks(p);
-            break;
-        }
-        pthread_mutex_lock(&p->meal_mutex);
-        p->last_meal = get_time_in_ms();
-        p->meals_eaten++;
-        pthread_mutex_unlock(&p->meal_mutex);
-        print_action(rules, p->id, "is eating");
-        smart_sleep(rules->time_to_eat, rules);
-        drop_forks(p);
-        if (is_dead(rules))
-            break;
-        print_action(rules, p->id, "is sleeping");
-        smart_sleep(rules->time_to_sleep, rules);
-        if (is_dead(rules))
-            break;
-        print_action(rules, p->id, "is thinking");
-        if (rules->n_philo % 2 == 1)
-            usleep(500);
-    }
 }

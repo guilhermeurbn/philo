@@ -6,7 +6,7 @@
 #    By: guisanto <guisanto@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/26 17:35:25 by guisanto          #+#    #+#              #
-#    Updated: 2025/11/27 18:28:30 by guisanto         ###   ########.fr        #
+#    Updated: 2025/11/29 16:20:22 by guisanto         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,7 +30,7 @@ SRCS = src/destroy.c \
 LIBFT_DIR = library/libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
-CFLAGS = -Wall -Wextra -Werror -pthread -I $(INCLUDES_DIR)
+CFLAGS = -Wall -Wextra -Werror -g -pthread -I $(INCLUDES_DIR)
 
 # Objects in obj/ folder
 OBJS = $(SRCS:src/%.c=obj/%.o)
